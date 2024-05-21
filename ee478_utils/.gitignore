@@ -1,0 +1,19 @@
+# IDEs
+.idea
+
+# builds
+*.egg-info
+
+# cache
+__pycache__
+.pytest_cache
+*.pyc
+
+# vs code
+.vscode
+
+# files
+*.csv
+*.txt
+*.png
+*.pdf
