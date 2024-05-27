@@ -32,7 +32,7 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class EERoboticsCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
-        num_envs = 4096
+        num_envs = 3064 #4096
         num_actions = 12
 
     class terrain( LeggedRobotCfg.terrain ):
@@ -94,5 +94,6 @@ class EERoboticsCfg( LeggedRobotCfg ):
 class EERoboticsCfgPPO( LeggedRobotCfgPPO ):
     class runner( LeggedRobotCfgPPO.runner ):
         run_name = ''
+        max_iterations = 2500 # number of policy updates
         experiment_name = 'ee_robotics'
         load_run = -1
