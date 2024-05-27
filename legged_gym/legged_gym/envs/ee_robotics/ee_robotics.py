@@ -97,6 +97,6 @@ class EERoboticsCfg( LeggedRobotCfg ):
 class EERoboticsCfgPPO( LeggedRobotCfgPPO ):
     class runner( LeggedRobotCfgPPO.runner ):
         run_name = ''
-        max_iterations = 2500 # number of policy updates
+        max_iterations = 2000 # number of policy updates
         experiment_name = 'ee_robotics'
         load_run = -1
