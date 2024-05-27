@@ -39,6 +39,7 @@ class TesterSuccessRate(Tester):
             obs, _, _, _, _ = self.env.step(actions.detach())
 
             i += 1
+            print("Time step:", i, "/500")
         
         record = (1-failure_record.float()) * success_record.float()
         success_rate = 100 * torch.mean(record)

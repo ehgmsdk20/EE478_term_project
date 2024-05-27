@@ -38,6 +38,8 @@ class TesterTrackingError(Tester):
             obs, _, _, _, _ = self.env.step(actions.detach())
 
             i += 1
+
+            print("Time step:", i, "/500")
         
         velocity_tracking_error = torch.mean(tracking_error_record.float()) / max_time
         print("Velocity tracking error:", velocity_tracking_error)
