@@ -904,3 +904,11 @@ class LeggedRobot(BaseTask):
     def _reward_feet_contact_forces(self):
         # penalize high contact forces
         return torch.sum((torch.norm(self.contact_forces[:, self.feet_indices, :], dim=-1) -  self.cfg.rewards.max_contact_force).clip(min=0.), dim=1)
+
+    """ 
+    Additional reward function
+    """
+    ### Example ###
+    
+    # def _reward_joint_power(self):
+        # return torch.sum(torch.mul(torch.abs(self.torques), torch.abs(self.dof_vel)), dim=1)
