@@ -38,7 +38,7 @@ class EERoboticsCfg( LeggedRobotCfg ):
     class terrain( LeggedRobotCfg.terrain ):
         mesh_type = 'trimesh'
         # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
-        terrain_proportions = [0.1, 0.1, 0.35, 0.25, 0.2]
+        terrain_proportions = [0.05, 0.1, 0.4, 0.4, 0.05]
 
 
     class init_state( LeggedRobotCfg.init_state ):
