@@ -1,10 +1,12 @@
 import subprocess
 import re
+import time
 
 def run_command(task, load_run, checkpoint):
     command = f"python ee478_utils/tests/eval_success_rate.py --task={task} --load_run={load_run} --checkpoint={checkpoint}"
-    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    return result.stdout
+    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate()
+    return stdout
 
 def extract_success_rate(output):
     match = re.search(r'Success rate: tensor\(([\d.]+)', output)
@@ -17,6 +19,7 @@ def find_best_checkpoint(task, load_run, start_checkpoint, end_checkpoint, step)
     best_success_rate = -1
 
     for checkpoint in range(start_checkpoint, end_checkpoint + 1, step):
+        print(f"Running command for checkpoint: {checkpoint}")
         output = run_command(task, load_run, checkpoint)
         success_rate = extract_success_rate(output)
 
@@ -25,6 +28,8 @@ def find_best_checkpoint(task, load_run, start_checkpoint, end_checkpoint, step)
             best_checkpoint = checkpoint
         
         print(f"Checkpoint: {checkpoint}, Success rate: {success_rate}")
+        # 잠시 대기 (옵션: 시스템 과부하 방지)
+        time.sleep(1)
 
     return best_checkpoint, best_success_rate
 
