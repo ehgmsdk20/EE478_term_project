@@ -38,7 +38,7 @@ echo "checkpoint,success_rate,velocity_tracking" > $CSV_FILE
 for ((i=$START_CHECKPOINT; i<=$MAX_ITERATIONS; i+=$CHECKPOINT_INTERVAL)); do
   # Evaluate success rate
   SUCCESS_RATE_OUTPUT=$(python ee478_utils/ee478_utils/tests/eval_success_rate.py --task=$TASK --load_run=$LOG_DIR $HEADLESS --checkpoint=$i)
-  SUCCESS_RATE=$(echo "$SUCCESS_RATE_OUTPUT" | grep "Success rate:" | awk -F'tensor\\(|,|\\)' '{print $2}' | sed 's/\.//')
+  SUCCESS_RATE=$(echo "$SUCCESS_RATE_OUTPUT" | grep "Success rate:" | awk -F'tensor\\(|,|\\)' '{print $2}' | cut -d'.' -f1)
   
   # Evaluate velocity tracking
   VELOCITY_TRACKING_OUTPUT=$(python ee478_utils/ee478_utils/tests/eval_velocity_tracking.py --task=$TASK --load_run=$LOG_DIR $HEADLESS --checkpoint=$i)
