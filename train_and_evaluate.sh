@@ -20,7 +20,7 @@ sudo rmmod nvidia_uvm
 sudo modprobe nvidia_uvm
 
 # Train the model
-# python legged_gym/legged_gym/scripts/train.py --task=$TASK $HEADLESS --max_iterations=$MAX_ITERATIONS
+python legged_gym/legged_gym/scripts/train.py --task=$TASK $HEADLESS --max_iterations=$MAX_ITERATIONS
 
 # Get the latest log directory
 LOG_DIR=$(ls -td ${LOG_ROOT_DIR}/* | head -1)
