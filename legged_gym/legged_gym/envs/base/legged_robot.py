@@ -47,6 +47,7 @@ from legged_gym.utils.terrain import Terrain
 from legged_gym.utils.math import quat_apply_yaw, wrap_to_pi, torch_rand_sqrt_float
 from legged_gym.utils.helpers import class_to_dict
 from .legged_robot_config import LeggedRobotCfg
+from scipy.spatial import ConvexHull
 
 class LeggedRobot(BaseTask):
     def __init__(self, cfg: LeggedRobotCfg, sim_params, physics_engine, sim_device, headless):
@@ -109,6 +110,10 @@ class LeggedRobot(BaseTask):
         """
         self.gym.refresh_actor_root_state_tensor(self.sim)
         self.gym.refresh_net_contact_force_tensor(self.sim)
+        self.gym.refresh_rigid_body_state_tensor(self.sim)
+        self.feet_positions = self.body_states[:, self.feet_indices, :2]
+        self.body_positions = self.body_states[:, 0, :2]
+        # self.hulls = [ConvexHull(feets.cpu().numpy()) for feets in self.feet_positions]
 
         self.episode_length_buf += 1
         self.common_step_counter += 1
@@ -485,13 +490,18 @@ class LeggedRobot(BaseTask):
         actor_root_state = self.gym.acquire_actor_root_state_tensor(self.sim)
         dof_state_tensor = self.gym.acquire_dof_state_tensor(self.sim)
         net_contact_forces = self.gym.acquire_net_contact_force_tensor(self.sim)
+        rigid_body_state = self.gym.acquire_rigid_body_state_tensor(self.sim)
         self.gym.refresh_dof_state_tensor(self.sim)
         self.gym.refresh_actor_root_state_tensor(self.sim)
         self.gym.refresh_net_contact_force_tensor(self.sim)
+        self.gym.refresh_rigid_body_state_tensor(self.sim)
 
         # create some wrapper tensors for different slices
         self.root_states = gymtorch.wrap_tensor(actor_root_state)
         self.dof_state = gymtorch.wrap_tensor(dof_state_tensor)
+        self.body_states = gymtorch.wrap_tensor(rigid_body_state).view(self.num_envs, -1, 13)
+        self.feet_positions = self.body_states[:, self.feet_indices, :2]
+        self.body_positions = self.body_states[:, 0, :2]
         self.dof_pos = self.dof_state.view(self.num_envs, self.num_dof, 2)[..., 0]
         self.dof_vel = self.dof_state.view(self.num_envs, self.num_dof, 2)[..., 1]
         self.base_quat = self.root_states[:, 3:7]
@@ -912,3 +922,28 @@ class LeggedRobot(BaseTask):
     
     # def _reward_joint_power(self):
         # return torch.sum(torch.mul(torch.abs(self.torques), torch.abs(self.dof_vel)), dim=1)
+
+    def point_in_hull(self, point, hull, tolerance=1e-12):
+        return all(
+            (np.dot(eq[:-1], point) + eq[-1] <= tolerance)
+            for eq in hull.equations)
+    def _reward_balance(self):
+        # Reward keeping the center stable
+        # center_of_feet = torch.mean(torch.stack(feet_positions), dim=0)
+        # distance_to_center = torch.norm(body_state[:2] - center_of_feet[:2])
+        penalties = torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
+        for i in range(self.num_envs):
+            is_inside_hull = self.point_in_hull(self.body_positions[i].cpu().numpy(), self.hulls[i])
+            if not is_inside_hull:
+                penalties[i] = -1.0  # Adjust the penalty magnitude as needed
+            else:
+                penalties[i] = 0.0
+        
+        return penalties
+
+    def _reward_large_convex_hull(self):
+        areas = torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
+        for i in range(self.num_envs):
+            areas[i] = self.hulls[i].area
+        return areas
+        
